@@ -41,7 +41,8 @@ if (!$result) {
         }
         .container {
             width: 90%;
-            margin: 30px auto;
+            margin: 30px 30px;
+            margin-left: 200px;
         }
         h3 {
             text-align: left;

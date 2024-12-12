@@ -1,6 +1,26 @@
 <?php
+session_start();
 include_once('./adminsidebar.php');
 include_once('db_conn2.php');
+
+
+// Function to log user activities
+function logUserActivity($conn, $user_id, $activity_type, $activity_details) {
+    $sql = "INSERT INTO activity_logs (user_id, activity_type, activity_details) VALUES (?, ?, ?)";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sss", $user_id, $activity_type, $activity_details);
+    $stmt->execute();
+    $stmt->close();
+}
+
+// Ensure the user is logged in and their user_id is available in the session
+if (!isset($_SESSION['user_id'])) {
+    echo "You must be logged in to perform this action.";
+    exit;
+}
+$user_id = $_SESSION['user_id'];  // Assuming user_id is stored in the session after login
+
+
 $resident_id = isset($_GET['resident_id']) ? $_GET['resident_id'] : null;
 if ($resident_id) {
     $sql = "SELECT r.*, c1.category_value AS sex, c2.category_value AS civil_status, 
@@ -125,6 +145,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_resident'])) {
     );
 
     if ($stmt->execute()) {
+         // Log the update action
+         $activity_type = "Updated Resident Info";
+         $activity_details = "Updated resident details for Resident ID {$resident_id}. Name: {$first_name} {$last_name}.";
+         logUserActivity($conn, $user_id, $activity_type, $activity_details);
+
         echo "<script>
                 document.addEventListener('DOMContentLoaded', function() {
                     showSuccessUpdateModal();
@@ -168,6 +193,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_resident'])) {
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("s", $resident_id);
     if ($stmt->execute()) {
+         // Log the deletion action
+         $activity_type = "Deleted Resident";
+         $activity_details = "Deleted Resident ID {$resident_id}. Name: {$resident['first_name']} {$resident['last_name']}.";
+         logUserActivity($conn, $user_id, $activity_type, $activity_details);
         echo "<script>
         document.addEventListener('DOMContentLoaded', function() {
             showSuccessDeleteModal(); 
@@ -186,6 +215,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['update_account_status
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("is", $new_status_id, $resident_id);
     if ($stmt->execute()) {
+          // Log the account status change
+          $activity_type = $new_status_id === 1 ? "Activated Resident Account" : "Deactivated Resident Account";
+          $activity_details = "Changed account status for Resident ID {$resident_id} to " . ($new_status_id === 1 ? 'Active' : 'Inactive');
+          logUserActivity($conn, $user_id, $activity_type, $activity_details);
+          
         echo "<script>
             alert('Account status successfully updated.');
             window.location.href = 'viewresident.php?resident_id={$resident_id}';
