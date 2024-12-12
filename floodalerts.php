@@ -102,6 +102,7 @@
 <body>
 <?php
 session_start();
+include('auth_check.php');
 include_once('db_conn2.php');
 include('./sidebar.php');
 $sql_new_alerts = "SELECT * FROM sensor_data WHERE status = 'NEW' ORDER BY id DESC, timestamp DESC;";

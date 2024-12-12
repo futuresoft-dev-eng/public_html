@@ -1,6 +1,7 @@
 
 <?php
 session_start();
+include('auth_check.php');
 include_once('db_conn2.php');
 include('./adminsidebar-accountservices.php');
 ?>

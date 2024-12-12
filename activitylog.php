@@ -19,6 +19,7 @@
 <body>
 <?php
 session_start();
+include('auth_check.php');
 include('./adminsidebar-activitylog.php');
 ?>
 <div class="container">

@@ -1,6 +1,7 @@
 <?php
 session_start();
 include 'db_conn2.php';
+include('auth_check.php');
 include 'adminsidebar-shift.php';
 
 $userData = [];

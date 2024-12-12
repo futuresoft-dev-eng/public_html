@@ -133,6 +133,7 @@
 <body>
     <?php
     session_start();
+    include('auth_check.php');
     date_default_timezone_set('Asia/Manila'); 
     include('./adminsidebar-livecam.php'); 
      ?>

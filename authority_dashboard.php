@@ -1,5 +1,6 @@
 <?php 
 session_start(); 
+include('auth_check.php');
 ?>
 
 <!DOCTYPE html>
@@ -187,6 +188,7 @@ session_start();
 <body>
     
     <?php 
+    
         include('./db_conn2.php');
         include('./sidebar-LAdashboard.php'); 
         date_default_timezone_set('Asia/Manila'); 

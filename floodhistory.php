@@ -18,6 +18,7 @@
 <body>
 <?php
 session_start();
+include('auth_check.php');
 include('./sidebar-LAfloodalertlogs.php');
 ?>
 <div class="container">

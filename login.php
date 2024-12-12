@@ -3,6 +3,10 @@ session_start();
 include 'db_conn2.php';
 
 $error = "";
+if (isset($_GET['error'])) {
+    $error = urldecode($_GET['error']); 
+    echo '<p style="color: red; font-weight: bold;">' . $error . '</p>';
+}
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = strtolower(trim($_POST['email']));

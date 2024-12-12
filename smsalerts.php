@@ -18,6 +18,7 @@
 <body>
 <?php
 session_start();
+include('auth_check.php');
 include('./sidebar-smsAlerts.php');
 ?>
 <div class="container">
