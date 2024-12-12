@@ -1,7 +1,19 @@
 <?php 
-        session_start(); 
-        include('./adminsidebar-dashboard.php'); 
-        include_once('db_conn2.php');
+    // Start the session at the very beginning of the page
+    session_start(); 
+
+    // Include necessary files
+    include('./adminsidebar-dashboard.php'); 
+    include_once('db_conn2.php');
+
+    if (!isset($_SESSION['user_id'])) {
+        // Set a session variable for the error message
+        $_SESSION['error_message'] = "You must log in first!";
+        
+        // Redirect to the login page
+        header("Location: login.php");
+        exit();
+    }
 ?>
 
 <!DOCTYPE html>

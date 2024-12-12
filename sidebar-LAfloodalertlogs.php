@@ -266,9 +266,10 @@ $role = isset($_SESSION['role']) ? $_SESSION['role'] : 'Unknown Role';
         <a href="floodhistory.php" class="nav-link">
             <span class="material-symbols-rounded">history</span>
         </a>
-        <a href="/logout" class="nav-link">
-            <span class="material-symbols-rounded logout-icon">chevron_right</span>
-        </a>
+        <span class="material-symbols-rounded logout-button" onclick="window.location.href='logout.php';">
+    chevron_right
+</span>
+
     </div>
 
     <!-- Sidebar -->
@@ -333,9 +334,10 @@ $role = isset($_SESSION['role']) ? $_SESSION['role'] : 'Unknown Role';
                 <div class="user-role"><?= htmlspecialchars($role); ?></div>
                 </div>
             </a>
-            <span class="material-symbols-rounded logout-button" onclick="window.location.href='login.php';">
-            chevron_right
-        </span>
+            <span class="material-symbols-rounded logout-button" onclick="window.location.href='logout.php';">
+    chevron_right
+</span>
+
         </div>
     </nav>
 
