@@ -32,13 +32,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $error = "Your account is inactive. Please contact the admin for further assistance.";
             } else {
                 if (password_verify($password, $user['password'])) {
+                    // Reset failed login attempts
                     $resetStmt = $conn->prepare("UPDATE users SET failed_attempts = 0, last_attempt_date = NULL, last_attempt_time = NULL WHERE email = ?");
                     $resetStmt->bind_param("s", $email);
                     $resetStmt->execute();
                     $resetStmt->close();
+
+                    // Set session variables
                     $_SESSION['user_id'] = $user['user_id'];
                     $_SESSION['full_name'] = $user['first_name'] . ' ' . $user['last_name'];
                     $_SESSION['role'] = $user['role'];
+
+                    // Log the login activity
+                    $user_id = $_SESSION['user_id'];  
+                    $activity_type = "Logged In";  // Activity type
+                    $activity_details = "User logged in successfully.";  // Activity details
+
+                    $logSql = "INSERT INTO activity_logs (user_id, activity_type, activity_details, timestamp) 
+                               VALUES ('$user_id', '$activity_type', '$activity_details', NOW())";
+                    $conn->query($logSql);  // Log the activity silently (no echo)
+
+                    // Redirect to the appropriate dashboard based on user role
                     if ($user['role'] === 'Admin') {
                         header("Location: admin_dashboard.php");
                     } else if ($user['role'] === 'Local Authority') {
@@ -73,6 +87,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 $conn->close();
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
