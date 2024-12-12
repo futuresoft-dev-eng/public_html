@@ -22,51 +22,82 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $house_lot_number = $conn->real_escape_string($house_lot_number);
     $street_subdivision_name = $conn->real_escape_string($street_subdivision_name);
 
-    
-    $stmt = $conn->prepare("SELECT user_id FROM users WHERE contact_no = ? AND user_id != ?");
-    $stmt->bind_param("si", $contact_no, $user_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    // Check if user_id exists in the users table
+    $check_user_stmt = $conn->prepare("SELECT user_id FROM users WHERE user_id = ?");
+    $check_user_stmt->bind_param("s", $user_id);
+    $check_user_stmt->execute();
+    $check_user_result = $check_user_stmt->get_result();
 
-    if ($result->num_rows > 0) {
-        
-        echo "This contact number is already registered.";
+    if ($check_user_result->num_rows > 0) {
+        $stmt = $conn->prepare("SELECT contact_no, email, house_lot_number, street_subdivision_name FROM users WHERE user_id = ?");
+        $stmt->bind_param("s", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $old_data = $result->fetch_assoc();
         $stmt->close();
-        exit();
-    }
-    $stmt->close();
 
-   
-    $stmt = $conn->prepare("SELECT user_id FROM users WHERE email = ? AND user_id != ?");
-    $stmt->bind_param("si", $email, $user_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
+        $activity_details = [];
 
-    if ($result->num_rows > 0) {
-        echo "This email address is already registered.";
-        $stmt->close();
-        exit();
-    }
-    $stmt->close();
+        if ($contact_no !== $old_data['contact_no']) {
+            $activity_details[] = "Contact number changed from {$old_data['contact_no']} to $contact_no";
+        }
 
-    $stmt = $conn->prepare("
-        UPDATE users 
-        SET 
-            contact_no = ?, 
-            email = ?, 
-            house_lot_number = ?, 
-            street_subdivision_name = ? 
-        WHERE user_id = ?
-    ");
-    $stmt->bind_param("ssssi", $contact_no, $email, $house_lot_number, $street_subdivision_name, $user_id);
+        if ($email !== $old_data['email']) {
+            $activity_details[] = "Email address changed from {$old_data['email']} to $email";
+        }
 
-    if ($stmt->execute()) {
-        header("Location: la_profile.php?status=success");
+        if ($house_lot_number !== $old_data['house_lot_number']) {
+            $activity_details[] = "House/Lot number changed from {$old_data['house_lot_number']} to $house_lot_number";
+        }
+
+        if ($street_subdivision_name !== $old_data['street_subdivision_name']) {
+            $activity_details[] = "Street/Subdivision name changed from {$old_data['street_subdivision_name']} to $street_subdivision_name";
+        }
+
+        $activity_details_string = implode(", ", $activity_details);
+
+        if (count($activity_details) > 0) {
+            $stmt = $conn->prepare("
+                UPDATE users 
+                SET 
+                    contact_no = ?, 
+                    email = ?, 
+                    house_lot_number = ?, 
+                    street_subdivision_name = ? 
+                WHERE user_id = ?
+            ");
+            $stmt->bind_param("ssssi", $contact_no, $email, $house_lot_number, $street_subdivision_name, $user_id);
+
+            if ($stmt->execute()) {
+                $activity_type = "Updated Profile Information";
+                $log_stmt = $conn->prepare("
+                    INSERT INTO activity_logs (user_id, activity_type, activity_details, timestamp) 
+                    VALUES (?, ?, ?, NOW())
+                ");
+                $log_stmt->bind_param("sss", $user_id, $activity_type, $activity_details_string);
+
+                if ($log_stmt->execute()) {
+                    echo "Activity log recorded successfully!";
+                } else {
+                    echo "Error inserting activity log: " . $log_stmt->error;
+                }
+                $log_stmt->close();
+
+                header("Location: la_profile.php?status=success");
+            } else {
+                echo "Error updating user details: " . $stmt->error;
+            }
+
+            $stmt->close();
+        } else {
+            header("Location: la_profile.php?status=no_change");
+        }
     } else {
-        echo "Error: " . $stmt->error;
+        echo "Error: User ID does not exist in the users table.";
+        exit();
     }
 
-    $stmt->close();
+    $check_user_stmt->close();
 }
 
 $stmt = $conn->prepare("
@@ -77,8 +108,9 @@ $stmt = $conn->prepare("
     FROM users 
     WHERE user_id = ?
 ");
+
 if ($stmt) {
-    $stmt->bind_param("i", $user_id);
+    $stmt->bind_param("s", $user_id);
     $stmt->execute();
     $result = $stmt->get_result();
     if ($result->num_rows > 0) {
@@ -93,6 +125,7 @@ if ($stmt) {
     exit();
 }
 ?>
+
 
 
 <!DOCTYPE html>
