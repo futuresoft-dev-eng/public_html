@@ -27,7 +27,6 @@ if ($filterBy == 'me') {
     $sql .= " AND u.role = 'Local Authority'"; 
 }
 
-// Execute the query
 $result = $conn->query($sql);
 
 // Fetch
@@ -46,75 +45,143 @@ if ($result->num_rows > 0) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Activity Log</title>
-    <link rel="icon" href="/images/logo.png" type="image/png">
+    <link rel="icon" href="/images/Floodpinglogo.png" type="image/png">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
     <style>
+          body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 100%;
+            margin: 50px auto;
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px 30px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: white;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            gap: 15px;
+        }
+        .back-button {
+            background-color: #0073AC;
+            color: white;
+            padding: 8px  20px;
+            border-radius: 15%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .header h2 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
         .filters {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 20px;
         }
-        .dataTables_paginate .paginate_button {
-            font-size: 13px; 
-            margin-top: 20px;
+
+        .filters form {
+            display: flex;
+            gap: 10px;
         }
 
-        .dataTables_info {
-            font-size: 13px; 
-            margin-top: 20px;
+        .filters select {
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid #02476A;
+            font-size: 14px;
+            background-color: #fff;
+            color: #02476A;
         }
 
-        .dataTables_length {
-            margin-top: -30px; 
-            font-size: 13px;
+        .filters select:focus {
+            outline: none;
+            border-color: #02476A;
+            box-shadow: 0 0 3px rgba(2, 71, 106, 0.5);
         }
 
-        .dataTables_length select {
-            font-size: 13px; 
+        table.dataTable {
+            width: 100%;
+            border-collapse: collapse;
         }
 
-        .dataTables_filter label {
-            margin-right: 5px;
+        table.dataTable th,
+        table.dataTable td {
+            text-align: left;
+            padding: 12px 10px;
+        }
+
+        table.dataTable th {
+            background-color: #02476A;
+            color: #fff;
             font-weight: bold;
-            font-size: 13px;
+        }
+
+        table.dataTable tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        table.dataTable tbody tr:hover {
+            background-color: #d9edf7;
         }
 
         .dataTables_filter {
-            position: relative;
-            display: flex;
-            align-items: center;
-            margin-top: -40px !important;
-            margin-bottom: 30px;
-            top: 10px;
+            text-align: right;
+            margin-bottom: 20px;
         }
 
         .dataTables_filter input {
-            width: 350px;
-            padding: 8px !important;
-            padding-left: 25px !important;
+            width: 300px;
+            padding: 8px 10px;
             border-radius: 5px;
-            border: 1px solid #02476A;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);  
+            border: 1px solid #ccc;
+            font-size: 14px;
         }
 
-        .dataTables_filter::before {
-            content: '\e8b6'; 
-            font-family: 'Material Symbols Rounded';
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 18px;
-            color: #02476A;
-            pointer-events: none;
+        .dataTables_info {
+            font-size: 14px;
+        }
+
+        .dataTables_paginate {
+            margin-top: 10px;
+            text-align: right;
         }
     </style>
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <h2>Activity Log</h2>
+    <div class="header">
+    <a href="authority_dashboard.php" class="back-button">
+    <span class="material-symbols-rounded">arrow_back</span>
+</a>
+        <h2>ACTIVITY LOG</h2>
+        </div>
+        <hr>
 
-        <!-- Filters Section -->
+   
+      
+
+        <!-- Table -->
+        <table id="activityLogTable" class="display">
+              <!-- Filters -->
         <div class="filters">
             <form method="GET" id="filterForm">
                 <select name="filter" id="filter" onchange="document.getElementById('filterForm').submit()">
@@ -123,9 +190,6 @@ if ($result->num_rows > 0) {
                 </select>
             </form>
         </div>
-
-        <!-- Activity Logs Table -->
-        <table id="activityLogTable" class="display">
             <thead>
                 <tr>
                     <th>Activity ID</th>
@@ -155,15 +219,14 @@ if ($result->num_rows > 0) {
         </table>
     </div>
 
-    <!-- Initialize DataTable -->
     <script>
         $(document).ready(function () {
-            const table = $('#activityLogTable').DataTable({ 
+            $('#activityLogTable').DataTable({
                 language: {
                     search: "",
-                    searchPlaceholder: "     Search..."
+                    searchPlaceholder: "Search...",
                 },
-                stateSave: true
+                stateSave: true,
             });
         });
     </script>
