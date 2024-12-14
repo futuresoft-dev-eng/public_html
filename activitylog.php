@@ -11,11 +11,13 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'Admin') {
 
 $user_id = $_SESSION['user_id'];
 
+$filterRole = isset($_GET['filter_role']) ? $_GET['filter_role'] : 'Admin';
+
 $query = "SELECT al.activity_id, al.user_id, al.activity_type, al.activity_details, al.timestamp, u.first_name, u.last_name
           FROM activity_logs al
           JOIN users u ON al.user_id = u.user_id
-          WHERE u.role = 'Admin'
-          ORDER BY al.timestamp DESC"; 
+          WHERE u.role = '$filterRole'
+          ORDER BY al.timestamp DESC";
 
 $result = mysqli_query($conn, $query);
 
@@ -54,6 +56,17 @@ if (!$result) {
             font-size: 22px;
             font-weight: bold;
             margin-bottom: 20px;
+        }
+
+        .filters {
+            margin-bottom: 20px;
+        }
+
+        .filters select {
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 5px;
+            border: 1px solid #02476A;
         }
 
         table {
@@ -113,7 +126,18 @@ if (!$result) {
 </head>
 <body>
     <div class="container">
-        <h3>Admin Activity Logs</h3>
+        <h3> Activity Logs</h3>
+
+        <!-- Filter Section -->
+        <div class="filters">
+            <form method="GET" id="filterForm">
+                <label for="filter_role">Filter by Role:</label>
+                <select name="filter_role" id="filter_role" onchange="document.getElementById('filterForm').submit()">
+                    <option value="Admin" <?php echo ($filterRole === 'Admin') ? 'selected' : ''; ?>>Admin Activity Logs</option>
+                    <option value="Local Authority" <?php echo ($filterRole === 'Local Authority') ? 'selected' : ''; ?>>Local Authorities Activity Logs</option>
+                </select>
+            </form>
+        </div>
 
         <table id="activityLogTable" class="display responsive nowrap">
             <thead>
