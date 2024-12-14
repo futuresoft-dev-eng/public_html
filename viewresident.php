@@ -3,8 +3,7 @@ session_start();
 include_once('./adminsidebar.php');
 include_once('db_conn2.php');
 
-
-// Function to log user activities
+// log user activities
 function logUserActivity($conn, $user_id, $activity_type, $activity_details) {
     $sql = "INSERT INTO activity_logs (user_id, activity_type, activity_details) VALUES (?, ?, ?)";
     $stmt = $conn->prepare($sql);
@@ -13,12 +12,11 @@ function logUserActivity($conn, $user_id, $activity_type, $activity_details) {
     $stmt->close();
 }
 
-// Ensure the user is logged in and their user_id is available in the session
 if (!isset($_SESSION['user_id'])) {
     echo "You must be logged in to perform this action.";
     exit;
 }
-$user_id = $_SESSION['user_id'];  // Assuming user_id is stored in the session after login
+$user_id = $_SESSION['user_id']; 
 
 
 $resident_id = isset($_GET['resident_id']) ? $_GET['resident_id'] : null;
@@ -53,7 +51,6 @@ if ($resident_id) {
 $button_label = $account_status === 'Active' ? 'DEACTIVATE' : 'REACTIVATE';
 $button_action = $account_status === 'Active' ? 'deactivate' : 'reactivate';
 
-// Initialize an empty array for error messages
 $errors = [];
 
 //  update resident
@@ -97,14 +94,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_resident'])) {
         }
     }
 
-    // If there are errors, display them and stop execution
     if (!empty($errors)) {
         foreach ($errors as $error) {
             echo "<p style='color: red;'>{$error}</p>";
         }
         exit;
     }
-    
 
     // photo upload
     if (!empty($_FILES['profile_photo']['name'])) {
@@ -116,6 +111,67 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_resident'])) {
         }
     }
 
+ 
+$category_values = [
+    'sex' => [],
+    'civil_status' => [],
+    'socioeconomic_category' => [],
+    'health_status' => []
+];
+
+$sql = "SELECT category_id, category_value, category_type FROM categories WHERE category_type IN ('sex', 'civil_status', 'socioeconomic_category', 'health_status')";
+$result = $conn->query($sql);
+while ($row = $result->fetch_assoc()) {
+    $category_values[$row['category_type']][$row['category_id']] = $row['category_value'];
+}
+
+$changes = [];
+$old_values = [
+    'first_name' => $resident['first_name'],
+    'middle_name' => $resident['middle_name'],
+    'last_name' => $resident['last_name'],
+    'suffix' => $resident['suffix'],
+    'sex' => $resident['sex'],  
+    'date_of_birth' => $resident['date_of_birth'],
+    'mobile_number' => $resident['mobile_number'],
+    'email_address' => $resident['email_address'],
+    'civil_status' => $resident['civil_status'],
+    'socioeconomic_category' => $resident['socioeconomic_category'],
+    'health_status' => $resident['health_status'],
+    'house_lot_number' => $resident['house_lot_number'],
+    'street_subdivision_name' => $resident['street_subdivision_name'],
+    'barangay' => $resident['barangay'],
+    'municipality' => $resident['municipality']
+];
+
+foreach ($old_values as $key => $old_value) {
+    $new_value = isset($_POST[$key]) ? $_POST[$key] : '';
+    if (empty($new_value) && empty($old_value)) {
+        continue;
+    }
+    if ($old_value == $new_value) {
+        continue;  
+    }
+    if (in_array($key, ['sex', 'civil_status', 'socioeconomic_category', 'health_status'])) {
+        $old_category_value = $category_values[$key][$old_value] ?? $old_value;
+        $new_category_value = $category_values[$key][$new_value] ?? $new_value;
+
+        // Only log changes 
+        if ($old_category_value != $new_category_value) {
+            $field_label = ucfirst(str_replace('_', ' ', $key));  
+            $changes[] = "Changed {$field_label} from {$old_category_value} to {$new_category_value}";
+        }
+    } else {
+        if ($old_value != $new_value) {
+            $field_label = ucfirst(str_replace('_', ' ', $key));  
+            $changes[] = "Changed {$field_label} from {$old_value} to {$new_value}";
+        }
+    }
+}
+
+$activity_details = "Updated resident details for Resident ID {$resident_id}. Name: {$resident['first_name']} {$resident['last_name']}. " . implode(", ", $changes);
+
+if (!empty($changes)) {
     $sql = "UPDATE residents 
             SET first_name = ?, 
                 middle_name = ?, 
@@ -138,17 +194,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_resident'])) {
     $stmt = $conn->prepare($sql);
     $stmt->bind_param(
         "ssssissssssssssss", 
-        $first_name, $middle_name, $last_name, $suffix, $sex, $date_of_birth,
-        $mobile_number, $email_address, $civil_status, $socioeconomic_category, $health_status,
-        $house_lot_number, $street_subdivision_name, $barangay, $municipality,
-        $profile_photo_path, $resident_id 
+        $_POST['first_name'], $_POST['middle_name'], $_POST['last_name'], $_POST['suffix'], $_POST['sex'], $_POST['date_of_birth'],
+        $_POST['mobile_number'], $_POST['email_address'], $_POST['civil_status'], $_POST['socioeconomic_category'], $_POST['health_status'],
+        $_POST['house_lot_number'], $_POST['street_subdivision_name'], $_POST['barangay'], $_POST['municipality'],
+        $_POST['profile_photo'], $resident_id 
     );
 
     if ($stmt->execute()) {
          // Log the update action
          $activity_type = "Updated Resident Info";
-         $activity_details = "Updated resident details for Resident ID {$resident_id}. Name: {$first_name} {$last_name}.";
          logUserActivity($conn, $user_id, $activity_type, $activity_details);
+
 
         echo "<script>
                 document.addEventListener('DOMContentLoaded', function() {
@@ -160,7 +216,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_resident'])) {
     }    
     $stmt->close();
 }
-
+}
 
 $sexQuery = "SELECT category_id, category_value FROM categories WHERE category_type = 'sex'";
 $sexResult = $conn->query($sexQuery);
@@ -230,6 +286,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['update_account_status
     $stmt->close();
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
