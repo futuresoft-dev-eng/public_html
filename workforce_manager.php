@@ -13,7 +13,6 @@ function logUserActivity($conn, $admin_id, $activity_type, $activity_details) {
     $stmt->close();
 }
 
-// Fetch user data if 'edit_user_id' is set in the URL
 $userData = [];
 if (isset($_GET['edit_user_id'])) {
     $userId = $_GET['edit_user_id'];
