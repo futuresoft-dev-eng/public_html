@@ -693,7 +693,7 @@ function confirmUpdate(event) {
             </div>
             <div class="info-item">
                 <label>Mobile Number</label>
-                <input type="text" name="mobile_number" value="<?php echo htmlspecialchars($resident['mobile_number']); ?>" readonly style="background-color: #F5F5F5;">
+                <input type="text" name="mobile_number"  title="Mobile number must be exactly 11 digits" required maxlength="11" value="<?php echo htmlspecialchars($resident['mobile_number']); ?>" readonly style="background-color: #F5F5F5;">
             </div>
             <div class="info-item">
                 <label>Email Address</label>
