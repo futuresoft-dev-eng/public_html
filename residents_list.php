@@ -21,7 +21,7 @@ include('./adminsidebar-accountservices.php');
     }
 
     .title h3 {
-        font-size: 25px;
+        font-size: 25px
         font-weight: bold;
         color: #02476A;
         margin: 30px 0px 0px 170px !important;   
@@ -282,6 +282,10 @@ include('./adminsidebar-accountservices.php');
             }
         }
 </style>
+
+
+
+
 <main class="main-content">
     <div class="title">
     <h3>RESIDENT MANAGEMENT</h3>
@@ -487,6 +491,7 @@ $(document).ready(function () {
         stateSave: true
     });
 
+    // Disable all buttons by default
     $('#deactivateSelectedBtn, #reactivateSelectedBtn, #deleteSelectedBtn, .export-btn').prop('disabled', true);
     $('.export-btn').css('background-color', '#C5C5C5');
 
@@ -501,6 +506,7 @@ $(document).ready(function () {
             </button>
         `);
     }
+
     $('.import-btn').off('click').on('click', function () {
         $('#fileInput').click();
     });
@@ -510,6 +516,7 @@ $(document).ready(function () {
             $('#importForm').submit(); 
         }
     });
+
     $('#deleteSelectedBtn').on('click', function () {
         const selectedResidents = [];
         $('.rowCheckbox:checked').each(function () {
@@ -524,38 +531,66 @@ $(document).ready(function () {
             alert('No residents selected for deletion.');
         }
     });
+
     $('#statusFilter').on('change', function () {
         const selectedStatus = $(this).val();
         table.column(7).search(selectedStatus).draw();
     });
+
     $('#selectAll').on('click', function () {
         $('.rowCheckbox').prop('checked', this.checked);
         toggleButtons();  
     });
+
     $('.rowCheckbox').on('click', function () {
         $('#selectAll').prop('checked', $('.rowCheckbox:checked').length === $('.rowCheckbox').length);
         toggleButtons();  
     });
+
+    // Function to enable/disable buttons
     function toggleButtons() {
-        const selectedResidents = $('.rowCheckbox:checked').length;  
-        $('#deactivateSelectedBtn, #reactivateSelectedBtn, #deleteSelectedBtn').prop('disabled', selectedResidents === 0);
-        
-        if (selectedResidents > 0) {
-            $('.export-btn').css('pointer-events', 'auto'); 
-            $('.export-btn').css('background-color', ''); 
-        } else {
-            $('.export-btn').css('pointer-events', 'none'); 
-            $('.export-btn').css('background-color', '#C5C5C5'); 
+        const selectedResidents = $('.rowCheckbox:checked'); 
+        const selectedCount = selectedResidents.length;
+
+        // If no residents are selected, disable all buttons
+        if (selectedCount === 0) {
+            $('#deactivateSelectedBtn, #reactivateSelectedBtn, #deleteSelectedBtn').prop('disabled', true);
+            $('.export-btn').css('pointer-events', 'none').css('background-color', '#C5C5C5');
+            $('#selectedCount').text('0 Selected');
+            return;
         }
 
-        $('#selectedCount').text(selectedResidents + ' Selected');
+        // Enable export button
+        $('.export-btn').css('pointer-events', 'auto').css('background-color', '');
+        $('#selectedCount').text(selectedCount + ' Selected');
+
+        // Track statuses of selected residents
+        let selectedResidentsStatus = [];
+        selectedResidents.each(function () {
+            const status = $(this).closest('tr').find('td:eq(7)').text().trim();  
+            selectedResidentsStatus.push(status);
+        });
+
+        const hasActive = selectedResidentsStatus.includes('Active');
+        const hasDeactivated = selectedResidentsStatus.includes('Deactivated');
+
+        // Disable the Reactivate if Active
+        $('#reactivateSelectedBtn').prop('disabled', hasActive);
+
+        // Disable the Deactivate if Deactivated
+        $('#deactivateSelectedBtn').prop('disabled', hasDeactivated);
+
+        $('#deleteSelectedBtn').prop('disabled', selectedCount === 0);
     }
+
     $('#deactivateSelectedBtn').on('click', function () {
         updateStatus('deactivate');
     });
+
     $('#reactivateSelectedBtn').on('click', function () {
         updateStatus('reactivate');
     });
+
     function updateStatus(action) {
         const selectedResidents = [];
         $('.rowCheckbox:checked').each(function () {
@@ -574,25 +609,21 @@ $(document).ready(function () {
             alert('No residents selected for status update.');
         }
     }
+
     table.on('draw', function () {
         toggleButtons();  
     });
 });
 
 function activateButton(buttonId, redirectUrl) {
-        // Remove the active class from all buttons
-        const buttons = document.querySelectorAll('.navigation-btn');
-        buttons.forEach((btn) => {
-            btn.classList.remove('active');
-        });
-
-        // Add the active class to the clicked button
-        const activeButton = document.getElementById(buttonId);
-        activeButton.classList.add('active');
-
-        // Redirect to the provided URL
-        if (redirectUrl) {
-            window.location.href = redirectUrl;
-        }
+    const buttons = document.querySelectorAll('.navigation-btn');
+    buttons.forEach((btn) => {
+        btn.classList.remove('active');
+    });
+    const activeButton = document.getElementById(buttonId);
+    activeButton.classList.add('active');
+    if (redirectUrl) {
+        window.location.href = redirectUrl;
     }
+}
 </script>
