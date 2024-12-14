@@ -1,5 +1,6 @@
 <?php
 session_start();
+include('auth_check.php');
 include('sidebar.php');
 include('db_conn2.php');  
 
@@ -114,7 +115,7 @@ if ($result->num_rows > 0) {
             gap: 10px;
         }
 
-        .filters select {
+        .filters select,.filters input {
             padding: 8px 12px;
             border-radius: 5px;
             border: 1px solid #02476A;
@@ -122,7 +123,15 @@ if ($result->num_rows > 0) {
             background-color: #fff;
             color: #02476A;
         }
-
+        .filters button {
+            padding: 10px 20px;
+            background-color: #02476A;
+            color: #fff;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
         .filters select:focus {
             outline: none;
             border-color: #02476A;
