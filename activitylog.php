@@ -28,49 +28,60 @@ if (!$result) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, initial-scale=1, maximum-scale=1"> <!-- Ensures proper zoom scaling -->
     <title>Admin Activity Logs</title>
     <link rel="icon" href="/images/Floodpinglogo.png" type="image/png">
-        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
-        <style>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <style>
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f9f9f9;
             margin: 0;
             padding: 0;
         }
+
         .container {
-            width: 90%;
-            margin: 30px 30px;
-            margin-left: 200px;
+            max-width: 1200px; 
+            width: 95%; 
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box; 
         }
+
         h3 {
             text-align: left;
-            color: #333;
-            font-size: 22px;
             color: #02476A;
+            font-size: 22px;
             font-weight: bold;
             margin-bottom: 20px;
         }
+
         table {
-            width: 100%;
+            width: 100%; 
             border-collapse: collapse;
             margin-top: 20px;
         }
+
         th, td {
             padding: 12px;
             text-align: left;
             border: 1px solid #ddd;
+            word-wrap: break-word; 
         }
+
         th {
             background-color: #f2f2f2;
             color: #333;
         }
+
         tr:hover {
             background-color: #f1f1f1;
         }
 
-        /* DataTables customization */
+        .dataTables_wrapper {
+            overflow-x: auto; 
+        }
+
         .dataTables_paginate .paginate_button {
             font-size: 14px;
         }
@@ -90,48 +101,12 @@ if (!$result) {
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
         }
 
-        .dataTables_filter::before {
-            content: '\e8b6'; 
-            font-family: 'Material Icons';
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 18px;
-            color: #02476A;
-            pointer-events: none;
-        }
-
-        /* Loading Spinner */
-        .spinner {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            border: 8px solid #f3f3f3;
-            border-top: 8px solid #02476A;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            display: none; /* Hide by default */
-        }
-
-        @keyframes spin {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-
-        /* Responsive adjustments */
         @media (max-width: 768px) {
             table {
                 font-size: 14px;
             }
             th, td {
                 padding: 8px;
-            }
-            .container {
-                width: 95%;
             }
         }
     </style>
@@ -140,7 +115,6 @@ if (!$result) {
     <div class="container">
         <h3>Admin Activity Logs</h3>
 
-        <div class="spinner" id="loadingSpinner"></div>
         <table id="activityLogTable" class="display responsive nowrap">
             <thead>
                 <tr>
@@ -158,7 +132,7 @@ if (!$result) {
                         <td><?php echo date('M d, Y, h:i A', strtotime($row['timestamp'])); ?></td>
                         <td><?php echo htmlspecialchars($row['first_name']) . ' ' . htmlspecialchars($row['last_name']); ?></td>
                         <td><?php echo htmlspecialchars($row['activity_type']); ?></td>
-                        <td><?php echo htmlspecialchars($row['activity_details']); ?></td>
+                        <td><?php echo nl2br(htmlspecialchars($row['activity_details'])); ?></td>
                     </tr>
                 <?php endwhile; ?>
             </tbody>
@@ -169,24 +143,16 @@ if (!$result) {
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <script>
         $(document).ready(function () {
-            $('#loadingSpinner').show();
-
             $('#activityLogTable').DataTable({
                 language: {
                     search: "",
                     searchPlaceholder: "Search activity logs..."
                 },
                 stateSave: true,
-                responsive: true,
-                initComplete: function () {
-                    $('#loadingSpinner').hide();
-                }
+                responsive: true, 
+                autoWidth: false,
             });
         });
     </script>
 </body>
 </html>
-
-<?php
-mysqli_close($conn);
-?>
