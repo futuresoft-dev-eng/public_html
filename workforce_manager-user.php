@@ -3,6 +3,14 @@ session_start();
 include 'db_conn2.php';
 include 'adminsidebar-shift.php';
 
+function logUserActivity($conn, $admin_id, $activity_type, $activity_details) {
+    $sql = "INSERT INTO activity_logs (user_id, activity_type, activity_details) VALUES (?, ?, ?)";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sss", $admin_id, $activity_type, $activity_details);
+    $stmt->execute();
+    $stmt->close();
+}
+
 $userData = [];
 if (isset($_GET['edit_user_id'])) {
     $userId = $_GET['edit_user_id'];
@@ -16,17 +24,21 @@ if (isset($_GET['edit_user_id'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['assign_schedule'])) {
-    echo "Form submitted!<br>";  // Debugging line
+    $admin_id = $_SESSION['user_id']; 
+
+    echo "Form submitted!<br>";  
     
     $userId = $_POST['user_id'];
     $schedule = [];
     $shift = [];
 
+    // Loop through each day of the week and gather the schedule data
     foreach (["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as $day) {
         if (isset($_POST[$day])) {
-            $schedule[] = strtoupper(substr($day, 0, 3));  // Convert day name to 3-letter format
+            $schedule[] = strtoupper(substr($day, 0, 3));  // Convert day to 3-letter format (e.g., MON, TUE)
             $time = $_POST[$day . "_time"];  // Get the selected shift time
 
+            // Add the corresponding shift based on the selected time
             switch ($time) {
                 case "08:00 AM - 5:00 PM":
                     if (!in_array("Morning Shift", $shift)) $shift[] = "Morning Shift";
@@ -41,26 +53,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['assign_schedule'])) {
         }
     }
 
-    // Convert array to string
+    // Convert arrays to comma-separated strings
     $scheduleStr = implode(", ", $schedule);
     $shiftStr = implode(", ", $shift);
+
+    // Fetch user's full name
+    $userName = $userData['first_name'] . ' ' . $userData['last_name'];
 
     echo "Schedule: $scheduleStr <br>";  // Debugging line
     echo "Shift: $shiftStr <br>";  // Debugging line
     
-    // Prepare the update SQL query
+    // Prepare the SQL query to update the schedule and shift
     $sql = "UPDATE users SET schedule = ?, shift = ? WHERE user_id = ?";
     $stmt = $conn->prepare($sql);
     
-    // Check for errors in the statement preparation
+    // Check if the query preparation was successful
     if (!$stmt) {
         die("Error in query preparation: " . $conn->error);
     }
 
-    // Bind parameters and execute the query
+    // Bind the parameters and execute the query
     $stmt->bind_param("ssi", $scheduleStr, $shiftStr, $userId);
 
     if ($stmt->execute()) {
+        // Log the activity with the user's name
+        $activity_type = "Assigned Schedule and Shift";
+        $activity_details = "Successfuly Assigned schedule: $scheduleStr and shift: $shiftStr to user $userName (User ID $userId).";
+        logUserActivity($conn, $admin_id, $activity_type, $activity_details);
+
         // Successfully updated
         echo "<script>alert('Schedule and shift updated successfully!'); window.location.href = 'workforce_manager-user.php';</script>";
     } else {
@@ -71,6 +91,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['assign_schedule'])) {
     $stmt->close();
 }
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="en">
