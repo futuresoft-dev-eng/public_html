@@ -48,24 +48,24 @@ if ($result_new_alerts->num_rows > 0) {
     echo '<tbody>';
 
     $rows = $result_new_alerts->fetch_all(MYSQLI_ASSOC);
-    $defaultMeter = 1.0;
+    $defaultheight = 1.0;
 
     for ($i = 0; $i < count($rows); $i++) {
         $id = $rows[$i]['id'];
         $timestamp = $rows[$i]['timestamp'];
-        $meters = $rows[$i]['meters'];
-        $rate = $rows[$i]['rate'];
-        $alert_level = $rows[$i]['alert_level'];
+        $height = $rows[$i]['height'];
+        $height_rate = $rows[$i]['height_rate'];
+        $water_level = $rows[$i]['water_level'];
         $status = $rows[$i]['status'];
         $date = date("m/d/Y", strtotime($timestamp));
         $time = date("g:i:s A", strtotime($timestamp));
 
         // Determine waterflow trend
-        $previousMeters = $i > 0 ? $rows[$i - 1]['meters'] : $defaultMeter;
-        $nextMeters = $rows[$i + 1]['meters'] ?? $defaultMeter;
-        $flow = ($meters > $nextMeters)
+        $previousheight = $i > 0 ? $rows[$i - 1]['height'] : $defaultheight;
+        $nextheight = $rows[$i + 1]['height'] ?? $defaultheight;
+        $flow = ($height > $nextheight)
             ? '<span class="material-symbols-rounded trending-up">trending_up</span>'
-            : (($meters < $nextMeters)
+            : (($height < $nextheight)
                 ? '<span class="material-symbols-rounded trending-down">trending_down</span>'
                 : '<span class="material-symbols-rounded stable">stable</span>');
 
@@ -76,7 +76,7 @@ if ($result_new_alerts->num_rows > 0) {
             "MEDIUM LEVEL" => "MODERATE",
             "CRITICAL LEVEL" => "CRITICAL"
         ];
-        $mappedAlertLevel = $alertMapping[$alert_level] ?? $alert_level;
+        $mappedAlertLevel = $alertMapping[$water_level] ?? $water_level;
 
         // Render table row
         echo "<tr>
@@ -84,8 +84,8 @@ if ($result_new_alerts->num_rows > 0) {
                 <td>{$date}</td>
                 <td>{$time}</td>
                 <td>{$status}</td>
-                <td>{$meters} m</td>
-                <td>{$rate} m/min</td>
+                <td>{$height} m</td>
+                <td>{$height_rate} m/min</td>
                 <td>{$flow}</td>
                 <td>{$mappedAlertLevel}</td>
                 <td>
@@ -195,7 +195,7 @@ echo '</table>';
                                     <span>Water Level</span>
                                 </div>
                                 <div>
-                                    <h5>13 meters</h5>
+                                    <h5>13 height</h5>
                                     <span>Height</span>
                                 </div>
                             </div>
@@ -267,22 +267,22 @@ echo '</table>';
                             foreach ($rows as $index => $row) {
                                 $id = $row['id'];
                                 $timestamp = $row['timestamp'];
-                                $meters = $row['meters'];
-                                $rate = $row['rate'];
-                                $alert_level = $row['alert_level'];
+                                $height = $row['height'];
+                                $height_rate = $row['height_rate'];
+                                $water_level = $row['water_level'];
                                 $status = $row['status'];
                                 $date = date("m/d/Y", strtotime($timestamp));
                                 $time = date("g:i:s A", strtotime($timestamp));
 
                                 $flow = ($index == 0)
-                                    ? (($meters > $defaultMeter) 
+                                    ? (($height > $defaultheight) 
                                         ? '<span class="material-symbols-rounded trending-up">trending_up</span>' 
-                                        : (($meters < $defaultMeter) 
+                                        : (($height < $defaultheight) 
                                             ? '<span class="material-symbols-rounded trending-down">trending_down</span>' 
                                             : '<span class="material-symbols-rounded stable">stable</span>'))
-                                    : (($meters > ($rows[$index + 1]['meters'] ?? $defaultMeter)) 
+                                    : (($height > ($rows[$index + 1]['height'] ?? $defaultheight)) 
                                         ? '<span class="material-symbols-rounded trending-up">trending_up</span>' 
-                                        : (($meters < ($rows[$index + 1]['meters'] ?? $defaultMeter)) 
+                                        : (($height < ($rows[$index + 1]['height'] ?? $defaultheight)) 
                                             ? '<span class="material-symbols-rounded trending-down">trending_down</span>' 
                                             : '<span class="material-symbols-rounded stable">stable</span>'));
 
@@ -292,15 +292,15 @@ echo '</table>';
                                     "MEDIUM LEVEL" => "MODERATE",
                                     "CRITICAL LEVEL" => "CRITICAL"
                                 ];
-                                $mappedAlertLevel = $alertMapping[$alert_level] ?? $alert_level;
+                                $mappedAlertLevel = $alertMapping[$water_level] ?? $water_level;
 
                                 echo "<tr>
                                         <td>{$id}</td>
                                         <td>{$date}</td>
                                         <td>{$time}</td>
                                         <td>{$status}</td>
-                                        <td>{$meters} m</td>
-                                        <td>{$rate} m/min</td>
+                                        <td>{$height} m</td>
+                                        <td>{$height_rate} m/min</td>
                                         <td>{$flow}</td>
                                         <td>{$mappedAlertLevel}</td>
                                         <td>
@@ -337,7 +337,7 @@ echo '</table>';
                     <strong>Flood Alert Status:</strong> Verified<br>
                     <strong>Date (Petsa):</strong> 10/20/2024<br>
                     <strong>Water Level:</strong> Moderate<br>
-                    <strong>Height:</strong> 13 meters<br>
+                    <strong>Height:</strong> 13 height<br>
                     <strong>Time (Oras):</strong> 11:00:00 AM<br>
                     <strong>Number of Recipients:</strong> 10<br>
                     <strong>Flow:</strong> Rising (Pataas)<br>
