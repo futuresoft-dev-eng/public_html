@@ -127,7 +127,7 @@ $result_verified_alerts = $conn->query($sql_verified_alerts);
                     <th>Water Level</th>
                     <th>Flow</th>
                     <th>Height</th>
-                    <th>Height Rate</th>
+                    <th>Flood Alert Status</th>
                     <th>SMS Status</th>
                     <th>SMS Status Reason</th>
                     <th>Action</th>
@@ -145,7 +145,7 @@ $result_verified_alerts = $conn->query($sql_verified_alerts);
                                 <td>' . htmlspecialchars($row["water_level"]) . '</td>
                                 <td>' . htmlspecialchars($row["flow"]) . '</td>
                                 <td>' . htmlspecialchars($row["height"]) . '</td>
-                                <td>' . htmlspecialchars($row["height_rate"]) . '</td>
+                                <td>' . htmlspecialchars($row["alert_status"]) . '</td>
                                 <td>' . htmlspecialchars($row["sms_status"]) . '</td>
                                 <td>' . htmlspecialchars($row["sms_status_reason"]) . '</td>
                                 <td><button>VIEW</button></td>
@@ -465,7 +465,7 @@ function toggleVerified(button) {
         } else if (flow === "trending_up" && waterLevel === "CRITICAL") {
             smsStatus = "No SMS";
             smsReason = "Not Required";
-        } else if (flow === "trending_down" && (waterLevel === "LOW" || waterLevel === "MODERATE")) {
+        } else if (flow === "trending_down" && (waterLevel === "LOW" || waterLevel === "MODERATE" || waterLevel === "NORMAL"))  {
             smsStatus = "No SMS";
             smsReason = "Not Required";
         } else if (flow === "trending_down" && waterLevel === "CRITICAL") {
