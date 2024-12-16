@@ -114,7 +114,7 @@ $result_verified_alerts = $conn->query($sql_verified_alerts);
 
 <!-- Recent Alerts Section -->
 <div class="recentalerts">
-    <h2>RECENT VERIFIED FLOOD ALERTS</h2>
+    <h2>DAILY RECEIVED FLOOD ALERTS</h2>
     <hr style="color: gray; min-width: 2000px; position: absolute; margin: 10px 0px 0px -300px;">
     <div class="tablecontainer-recent">
         <!-- Your Table -->
@@ -166,6 +166,11 @@ $result_verified_alerts = $conn->query($sql_verified_alerts);
 <div class="status" style="margin-left: 400px; margin-top: 100px;">
 <img class="status-image" src="images/status.png" alt="Description of the image" style="width: 37%; margin-left: 520px; top">  
 </div>
+
+
+
+
+
 
 
 <!-- Modal: Flood Alert Management -->
@@ -246,77 +251,89 @@ $result_verified_alerts = $conn->query($sql_verified_alerts);
                     </div>
                 </div>
 
-                <!-- Bottom Section -->
-                <div class="bottom mt-3">
-                    <p>VERIFY THE FLOOD ALERT(S) BELOW:</p>
-                    <table style="table-layout: fixed;">
-                        <thead>
-                            <tr>
-                                <th style="width: 150px;">Flood Alert ID</th>
-                                <th>Date</th>
-                                <th>Time</th>
-                                <th>Status</th>
-                                <th>Height</th>
-                                <th>Height Rate</th>
-                                <th>Flow</th>
-                                <th>Water Level</th>
-                                <th>Mark As:</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            foreach ($rows as $index => $row) {
-                                $id = $row['id'];
-                                $timestamp = $row['timestamp'];
-                                $height = $row['height'];
-                                $height_rate = $row['height_rate'];
-                                $water_level = $row['water_level'];
-                                $status = $row['status'];
-                                $date = date("m/d/Y", strtotime($timestamp));
-                                $time = date("g:i:s A", strtotime($timestamp));
+  <!-- Bottom Section -->
+<div class="bottom mt-3">
+    <p>VERIFY THE FLOOD ALERT(S) BELOW:</p>
+    <table class="table table-bordered table-striped table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th style="width: 10%;">Flood Alert ID</th>
+                <th style="width: 12%;">Date</th>
+                <th style="width: 12%;">Time</th>
+                <th style="width: 10%;">Status</th>
+                <th style="width: 10%;">Height</th>
+                <th style="width: 10%;">Height Rate</th>
+                <th style="width: 10%;">Flow</th>
+                <th style="width: 10%;">Water Level</th>
+                <th style="width: 16%;">Mark As:</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            foreach ($rows as $index => $row) {
+                $id = $row['id'];
+                $timestamp = $row['timestamp'];
+                $height = $row['height'];
+                $height_rate = $row['height_rate'];
+                $water_level = $row['water_level'];
+                $status = $row['status'];
+                $date = date("m/d/Y", strtotime($timestamp));
+                $time = date("g:i:s A", strtotime($timestamp));
 
-                                $flow = ($index == 0)
-                                    ? (($height > $defaultheight)
-                                        ? '<span class="material-symbols-rounded trending-up">trending_up</span>'
-                                        : (($height < $defaultheight)
-                                            ? '<span class="material-symbols-rounded trending-down">trending_down</span>'
-                                            : '<span class="material-symbols-rounded stable">stable</span>'))
-                                    : (($height > ($rows[$index + 1]['height'] ?? $defaultheight))
-                                        ? '<span class="material-symbols-rounded trending-up">trending_up</span>'
-                                        : (($height < ($rows[$index + 1]['height'] ?? $defaultheight))
-                                            ? '<span class="material-symbols-rounded trending-down">trending_down</span>'
-                                            : '<span class="material-symbols-rounded stable">stable</span>'));
+                // Determine flow class
+                $flowClass = ($index == 0)
+                    ? (($height > $defaultheight) ? 'trending-up' : (($height < $defaultheight) ? 'trending-down' : 'stable'))
+                    : (($height > ($rows[$index + 1]['height'] ?? $defaultheight)) ? 'trending-up' : (($height < ($rows[$index + 1]['height'] ?? $defaultheight)) ? 'trending-down' : 'stable'));
 
-                                $alertMapping = [
-                                    "NORMAL LEVEL" => "NORMAL",
-                                    "LOW LEVEL" => "LOW",
-                                    "MEDIUM LEVEL" => "MODERATE",
-                                    "CRITICAL LEVEL" => "CRITICAL"
-                                ];
-                                $mappedAlertLevel = $alertMapping[$water_level] ?? $water_level;
+                // Clean flow text
+                $flowText = str_replace('-', '_', $flowClass);
 
-                                echo "<tr>
-                                        <td>{$id}</td>
-                                        <td>{$date}</td>
-                                        <td>{$time}</td>
-                                        <td>{$status}</td>
-                                        <td>{$height} m</td>
-                                        <td>{$height_rate} m/min</td>
-                                        <td>{$flow}</td>
-                                        <td>{$mappedAlertLevel}</td>
-                                        <td>
-                                            <button class='buttons btn btn-danger' id='falseAlarmBtn_{$id}' onclick='toggleFalseAlarm({$id})'>FALSE ALERT</button>
-                                            <button class='buttons btn btn-success' id='verifyBtn_{$id}' onclick='toggleVerified({$id})'>VERIFIED</button>
-                                            
-                                            
-                                        </td>
-                                      </tr>";
-                            }
-                            ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                // Map water level
+                $alertMapping = [
+                    "NORMAL LEVEL" => "NORMAL",
+                    "LOW LEVEL" => "LOW",
+                    "MEDIUM LEVEL" => "MODERATE",
+                    "CRITICAL LEVEL" => "CRITICAL"
+                ];
+                $mappedAlertLevel = $alertMapping[$water_level] ?? $water_level;
+
+                // Output table row
+                echo "<tr>
+                        <td>{$id}</td>
+                        <td>{$date}</td>
+                        <td>{$time}</td>
+                        <td>{$status}</td>
+                        <td>{$height} m</td>
+                        <td>{$height_rate} m/min</td>
+                        <td>
+                            <span class='material-symbols-rounded {$flowClass}'>{$flowText}</span>
+                        </td>
+                        <td>{$mappedAlertLevel}</td>
+                        <td class='text-center'>
+                            <div class='d-flex justify-content-center gap-2 flex-wrap'>
+                                <button class='btn btn-sm btn-danger' 
+                                    id='falseAlarmBtn_{$id}' 
+                                    data-id='{$id}' 
+                                    data-flow='{$flowText}' 
+                                    data-water-level='{$mappedAlertLevel}'
+                                    onclick='toggleFalseAlarm(this)'>FALSE ALERT</button>
+                                <button class='btn btn-sm btn-success' 
+                                    id='verifyBtn_{$id}' 
+                                    data-id='{$id}' 
+                                    data-flow='{$flowText}' 
+                                    data-water-level='{$mappedAlertLevel}'
+                                    onclick='toggleVerified(this)'>VERIFIED</button>
+                            </div>
+                        </td>
+                    </tr>";
+            }
+            ?>
+        </tbody>
+    </table>
+</div>
+
+</div>
+
         </div>
     </div>
 </div>
@@ -393,83 +410,78 @@ function closeModal() {
 }
 
   // Function to toggle "False Alert" status
-function toggleFalseAlarm(id) {
+  function toggleFalseAlarm(button) {
+    const id = button.getAttribute("data-id");
+    console.log(`Toggle False Alarm called for ID: ${id}`);
+
     const falseAlarmButton = document.getElementById("falseAlarmBtn_" + id);
     const verifyButton = document.getElementById("verifyBtn_" + id);
 
     if (!falseAlarmButton.classList.contains("clicked")) {
-        falseAlarmButton.classList.add("clicked");
-        falseAlarmButton.classList.add("active");
-        verifyButton.classList.remove("clicked");
-        verifyButton.classList.remove("active");
+        // Mark as clicked and active
+        falseAlarmButton.classList.add("clicked", "active");
+        verifyButton.classList.remove("clicked", "active");
+
         updateSummary(id, "False Alert", "No SMS", "False Alert");
     } else {
-        falseAlarmButton.classList.remove("clicked");
-        falseAlarmButton.classList.remove("active");
+        // Unmark the button
+        falseAlarmButton.classList.remove("clicked", "active");
         updateSummary(id, "", "", "");
     }
 
     checkConfirmButtonState();
 }
 
-  // Function to toggle "Verified Alert" status
-function toggleVerified(id) {
+
+// Function to toggle "Verified Alert" status
+function toggleVerified(button) {
+    // Extract data attributes
+    const id = button.getAttribute("data-id");
+    const flow = button.getAttribute("data-flow").trim();
+    const waterLevel = button.getAttribute("data-water-level").trim();
+
     console.log(`Toggle Verified called for ID: ${id}`);
+    console.log(`Flow: ${flow}, Water Level: ${waterLevel}`);
 
     const verifyButton = document.getElementById("verifyBtn_" + id);
     const falseAlarmButton = document.getElementById("falseAlarmBtn_" + id);
 
     if (!verifyButton.classList.contains("clicked")) {
-        verifyButton.classList.add("clicked");
-        verifyButton.classList.add("active");
-        falseAlarmButton.classList.remove("clicked");
-        falseAlarmButton.classList.remove("active");
+        // Mark the button as clicked and active
+        verifyButton.classList.add("clicked", "active");
+        falseAlarmButton.classList.remove("clicked", "active");
 
-        // Fetch the row and its columns
-        const row = document.querySelector(`#row_${id}`);
-        if (!row) {
-            console.error(`Row with ID #row_${id} not found.`);
-            return;
-        }
-
-        const flowCell = row.querySelector("td:nth-child(7)");
-        const waterLevelCell = row.querySelector("td:nth-child(8)");
-
-        // Check if the required cells exist
-        if (!flowCell || !waterLevelCell) {
-            console.error(`Required table cells for Flow or Water Level not found in row #row_${id}.`);
-            return;
-        }
-
-        const flow = flowCell.textContent.trim();
-        const waterLevel = waterLevelCell.textContent.trim();
-
-        console.log(`Flow: ${flow}, Water Level: ${waterLevel}`);
-
+        // Initialize default values
         let smsStatus = "No SMS";
-        let smsReason = "";
+        let smsReason = "Not Required";
 
-        // Apply conditions for Verified alerts
-        if (flow === "Subsiding" || waterLevel === "CRITICAL") {
-            smsReason = "Not Required";
-        } else if (flow === "Rising" && ["LOW", "MODERATE"].includes(waterLevel)) {
+        // Determine SMS Status and Reason based on conditions
+        if (flow === "trending_up" && waterLevel === "LOW") {
             smsStatus = "With SMS";
             smsReason = "Required";
-        } else if (flow === "Rising" && waterLevel === "CRITICAL") {
-            smsReason = "Insufficient";
-        } else {
-            smsReason = "Manual Review Required";
+        } else if (flow === "trending_up" && waterLevel === "MODERATE") {
+            smsStatus = "With SMS";
+            smsReason = "Required";
+        } else if (flow === "trending_up" && waterLevel === "CRITICAL") {
+            smsStatus = "No SMS";
+            smsReason = "Not Required";
+        } else if (flow === "trending_down" && (waterLevel === "LOW" || waterLevel === "MODERATE")) {
+            smsStatus = "No SMS";
+            smsReason = "Not Required";
+        } else if (flow === "trending_down" && waterLevel === "CRITICAL") {
+            smsStatus = "No SMS";
+            smsReason = "Not Required";
         }
 
-        console.log(`SMS Status: ${smsStatus}, SMS Reason: ${smsReason}`);
-
+        // Update the summary table with the final values
         updateSummary(id, "Verified", smsStatus, smsReason);
     } else {
-        verifyButton.classList.remove("clicked");
-        verifyButton.classList.remove("active");
+        // If clicked again, unmark and reset the summary table
+        verifyButton.classList.remove("clicked", "active");
         updateSummary(id, "", "", "");
     }
 
+    // Check if the confirm button should be enabled
     checkConfirmButtonState();
 }
 
@@ -481,33 +493,30 @@ function updateSummary(id, status, smsStatus, smsReason) {
     const smsStatusCell = document.getElementById("sms_" + id);
     const smsReasonCell = document.getElementById("sms_reason_" + id);
 
-    // Update the summary table
-    if (statusCell) statusCell.innerText = status;
-    if (smsStatusCell) smsStatusCell.innerText = smsStatus;
-    if (smsReasonCell) smsReasonCell.innerText = smsReason;
+    if (statusCell) statusCell.innerText = status || "";
+    if (smsStatusCell) smsStatusCell.innerText = smsStatus || "";
+    if (smsReasonCell) smsReasonCell.innerText = smsReason || "";
 
-    console.log(`Flood Alert ID: ${id}`);
-    console.log(`Status Updated: ${status}`);
-    console.log(`SMS Status Updated: ${smsStatus}`);
-    console.log(`SMS Reason Updated: ${smsReason}`);
+    console.log(`Updated Summary for ID: ${id}`);
+    console.log(`Status: ${status}, SMS Status: ${smsStatus}, SMS Reason: ${smsReason}`);
 
-    confirmButton.disabled = false; // Enable Confirm Button
+    checkConfirmButtonState();  // Check if the Confirm button should be enabled
 }
+
+
 
 
 
 // Function to check if all rows are marked
 function checkConfirmButtonState() {
     const statusCells = document.querySelectorAll("[id^='status_']");
-    const smsStatusCells = document.querySelectorAll("[id^='sms_']");
-    const smsReasonCells = document.querySelectorAll("[id^='sms_reason_']");
+    const allFilled = [...statusCells].every(cell => cell.innerText.trim() !== "");
 
-    const allFilled = [...statusCells, ...smsStatusCells, ...smsReasonCells].every(
-        (cell) => cell && cell.innerText.trim() !== ""
-    );
-
-    confirmButton.disabled = !allFilled; // Enable/Disable button
+    const confirmButton = document.getElementById("confirmButton");
+    confirmButton.disabled = !allFilled;
 }
+
+
 
 // Confirm Button Functionality
 document.getElementById("confirmButton").addEventListener("click", function () {
