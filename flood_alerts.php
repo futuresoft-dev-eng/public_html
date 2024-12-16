@@ -433,6 +433,8 @@ function closeModal() {
 }
 
 
+let recentVerifiedId = null; // To track the most recent verified alert ID
+
 // Function to toggle "Verified Alert" status
 function toggleVerified(button) {
     // Extract data attributes
@@ -465,12 +467,24 @@ function toggleVerified(button) {
         } else if (flow === "trending_up" && waterLevel === "CRITICAL") {
             smsStatus = "No SMS";
             smsReason = "Not Required";
-        } else if (flow === "trending_down" && (waterLevel === "LOW" || waterLevel === "MODERATE" || waterLevel === "NORMAL"))  {
+        } else if (flow === "trending_down" && (waterLevel === "LOW" || waterLevel === "MODERATE" || waterLevel === "NORMAL")) {
             smsStatus = "No SMS";
             smsReason = "Not Required";
         } else if (flow === "trending_down" && waterLevel === "CRITICAL") {
             smsStatus = "No SMS";
             smsReason = "Not Required";
+        }
+
+        // Update recent alert logic
+        if (flow === "trending_up" && (waterLevel === "LOW" || waterLevel === "MODERATE")) {
+            if (recentVerifiedId !== null) {
+                // Mark the previous most recent alert as "Overtaken"
+                updateSummary(recentVerifiedId, "Verified", "No SMS", "Overtaken");
+            }
+            // Update current alert as the most recent one
+            recentVerifiedId = id;
+            smsStatus = "With SMS";
+            smsReason = "Required";
         }
 
         // Update the summary table with the final values
@@ -479,6 +493,11 @@ function toggleVerified(button) {
         // If clicked again, unmark and reset the summary table
         verifyButton.classList.remove("clicked", "active");
         updateSummary(id, "", "", "");
+
+        // Reset recent alert ID if unmarked
+        if (recentVerifiedId === id) {
+            recentVerifiedId = null;
+        }
     }
 
     // Check if the confirm button should be enabled
