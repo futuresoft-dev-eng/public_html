@@ -3,6 +3,10 @@
     padding: 0;
     box-sizing: border-box;
 }
+.hidden-flow, .hidden-water-level {
+    display: none;
+}
+
 
 .newalerts h2 {
     font-size: 20px;
