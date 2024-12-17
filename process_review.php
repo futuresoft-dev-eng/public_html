@@ -68,10 +68,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
 
         if ($insertStmt->execute()) {
+            // After successful insertion, delete from sensor_data table
+            $deleteQuery = "DELETE FROM sensor_data WHERE id = ?";
+            $deleteStmt = $conn->prepare($deleteQuery);
+            $deleteStmt->bind_param("i", $id);
+            $deleteStmt->execute();
+
             $response[] = [
                 'id' => $id,
                 'success' => true,
-                'message' => "Flood alert ID {$id} successfully reviewed and inserted into flood_alerts."
+                'message' => "Flood alert ID {$id} successfully reviewed, inserted into flood_alerts, and removed from sensor_data."
             ];
         } else {
             $response[] = [

@@ -558,8 +558,18 @@ document.getElementById("confirmButton").addEventListener("click", function () {
     if (reviewedAlerts.length > 0) {
         $.post("process_review.php", { alerts: reviewedAlerts })
             .done(function (response) {
-                alert("Flood alerts successfully reviewed and transferred!");
-                location.reload();
+                const result = JSON.parse(response);
+                let success = true;
+                result.forEach(item => {
+                    if (!item.success) {
+                        success = false;
+                        alert("Error: " + item.error);
+                    }
+                });
+                if (success) {
+                    alert("Flood alerts successfully reviewed, moved to flood_alerts, and removed from sensor_data.");
+                    location.reload(); // Refresh the page to reflect changes
+                }
             })
             .fail(function () {
                 alert("Error transferring flood alerts. Please try again.");
@@ -568,6 +578,7 @@ document.getElementById("confirmButton").addEventListener("click", function () {
         alert("No alerts were reviewed.");
     }
 });
+
 
 
 
