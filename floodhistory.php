@@ -160,17 +160,31 @@ if (!$result) {
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+
 </head>
 <body>
     <div class="container">
         <div class="main-content">
             <div class="header">
                 <h2>VERIFIED FLOOD ALERT LOGS</h2>
+
+                <div class="d-flex justify-content-end mb-3">
+    <!-- 3-dot Dropdown Button -->
+    <div class="dropdown me-2">
+        <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false" style="padding: 6px 12px;">
+            <i class="fa fa-ellipsis-v" style="font-size: 1.2rem;"></i> <!-- 3 dots icon -->
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <li><a class="dropdown-item" href="falsealert_logs.php">View False Alert Logs</a></li>
+            <li><a class="dropdown-item" href="unverified_alert_logs.php">View Unverified Alert Logs</a></li>
+        </ul>
+        </div>
+        </div>
                 <div class="d-flex justify-content-end mb-3">
                 <a href="floodheight_rate_logs.php" class="btn btn-primary" style="background-color: #0073AC; border: none;">
                     <span style="margin-right: 5px;">👁</span> VIEW HEIGHT RATE LOGS
                 </a>
-</div>
+            </div>
 
             </div>
             <hr>
