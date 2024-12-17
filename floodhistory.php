@@ -210,6 +210,21 @@ if (!$result) {
                 </form>
             </div>
 
+            <!-- Dropdown Filter for SMS Status and SMS Status Reason -->
+<div class="mb-3 d-flex justify-content-start gap-2">
+    <!-- SMS Status Filter -->
+    <select id="smsStatusFilter" class="form-select" style="width: 200px;">
+        <option value="">Select SMS Status</option>
+        <option value="All">All</option>
+        <option value="With SMS: Required">With SMS: Required</option>
+        <option value="No SMS: Not Required">No SMS: Not Required</option>
+        <option value="No SMS: Overtaken">No SMS: Overtaken</option>
+        <option value="No SMS: Insufficient">No SMS: Insufficient</option>
+    </select>
+</div>
+
+
+
             <div class="table-responsive">
                  <table id="FalseAlertLogTable" class="table table-striped table-bordered">
                 <thead>
@@ -249,25 +264,46 @@ if (!$result) {
 
     <script>
         $(document).ready(function () {
-            $('#FalseAlertLogTable').DataTable({
-                searching: true,
-                stateSave: true,
-                pageLength: 10
-            });
-            $('#dateRangePicker').daterangepicker({
-                autoUpdateInput: false,
-                locale: {
-                    cancelLabel: 'Clear',
-                    format: 'YYYY-MM-DD'
-                }
-            });
-            $('#dateRangePicker').on('apply.daterangepicker', function (ev, picker) {
-                $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
-            });
-            $('#dateRangePicker').on('cancel.daterangepicker', function () {
-                $(this).val('');
-            });
-        });
+    // Initialize the DataTable only once
+    var table = $('#FalseAlertLogTable').DataTable({
+        searching: true,
+        stateSave: true,
+        pageLength: 10
+    });
+
+    // Event Listener for SMS Status Dropdown
+    $('#smsStatusFilter').on('change', function () {
+        var selectedValue = $(this).val();
+
+        if (selectedValue === "" || selectedValue === "All") {
+            // Reset filter to show all rows
+            table.column(6).search("").draw(); // Column 6 = SMS Status
+            table.column(7).search("").draw(); // Column 7 = SMS Status Reason
+        } else {
+            // Search specific SMS Status
+            table.column(6).search(selectedValue).draw();
+        }
+    });
+
+    // Date Range Picker Initialization
+    $('#dateRangePicker').daterangepicker({
+        autoUpdateInput: false,
+        locale: {
+            cancelLabel: 'Clear',
+            format: 'YYYY-MM-DD'
+        }
+    });
+
+    // Apply Date Range Picker filter
+    $('#dateRangePicker').on('apply.daterangepicker', function (ev, picker) {
+        $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
+    });
+
+    $('#dateRangePicker').on('cancel.daterangepicker', function () {
+        $(this).val('');
+    });
+});
+
     </script>
 </body>
 </html>
