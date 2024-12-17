@@ -177,7 +177,7 @@ $average_height_rate = 0.507;
     <div class="container">
         <div class="main-content">
             <div class="header">
-                <a href="authority_dashboard.php" class="back-button">
+                <a href="floodhistory.php" class="back-button">
                     <span class="material-symbols-rounded">arrow_back</span>
                 </a>
                 <h2>FLOOD HEIGHT RATE LOGS</h2>
