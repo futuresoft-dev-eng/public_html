@@ -9,7 +9,7 @@ $sql_new_alerts = "SELECT * FROM sensor_data WHERE status = 'NEW' ORDER BY id DE
 $result_new_alerts = $conn->query($sql_new_alerts);
 
 // Fetch VERIFIED flood alerts
-$sql_verified_alerts = "SELECT * FROM flood_alerts WHERE alert_status = 'Verified'";
+$sql_verified_alerts = "SELECT * FROM flood_alerts";
 $result_verified_alerts = $conn->query($sql_verified_alerts);
 ?>
 
@@ -27,87 +27,84 @@ $result_verified_alerts = $conn->query($sql_verified_alerts);
 </head>
 <body>
 
-
 <div class="newalerts">
     <h2>NEW FLOOD ALERTS</h2>
     <hr style="color: gray; min-width: 2000px; position: absolute; margin: 10px 0px 0px -100px;">
-    <div class ="tablecontainer">
+    <div class="tablecontainer">
         <table id="newalertTable" class="table table-bordered">
-            <?php
-            if ($result_new_alerts->num_rows > 0) {
-                echo '<thead>
-                        <tr>
-                            <th>Flood Alert ID</th>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Status</th>
-                            <th>Height</th>
-                            <th>Height Rate</th>
-                            <th>Flow</th>
-                            <th>Water Level</th>
-                            <th>Action</th>
-                        </tr>
-                      </thead>';
-                echo '<tbody>';
+            <thead>
+                <tr>
+                    <th>Flood Alert ID</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Status</th>
+                    <th>Height</th>
+                    <th>Height Rate</th>
+                    <th>Flow</th>
+                    <th>Water Level</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                if ($result_new_alerts->num_rows > 0) {
+                    $rows = $result_new_alerts->fetch_all(MYSQLI_ASSOC);
+                    $defaultheight = 1.0;
 
-                $rows = $result_new_alerts->fetch_all(MYSQLI_ASSOC);
-                $defaultheight = 1.0;
+                    foreach ($rows as $i => $row) {
+                        $id = $row['id'];
+                        $timestamp = $row['timestamp'];
+                        $height = $row['height'];
+                        $height_rate = $row['height_rate'];
+                        $water_level = $row['water_level'];
+                        $status = $row['status'];
+                        $date = date("m/d/Y", strtotime($timestamp));
+                        $time = date("g:i:s A", strtotime($timestamp));
 
-                foreach ($rows as $i => $row) {
-                    $id = $row['id'];
-                    $timestamp = $row['timestamp'];
-                    $height = $row['height'];
-                    $height_rate = $row['height_rate'];
-                    $water_level = $row['water_level'];
-                    $status = $row['status'];
-                    $date = date("m/d/Y", strtotime($timestamp));
-                    $time = date("g:i:s A", strtotime($timestamp));
+                        // Determine waterflow trend
+                        $previousheight = $i > 0 ? $rows[$i - 1]['height'] : $defaultheight;
+                        $nextheight = $rows[$i + 1]['height'] ?? $defaultheight;
+                        $flow = ($height > $nextheight)
+                            ? '<span class="material-symbols-rounded trending-up">trending_up</span>'
+                            : (($height < $nextheight)
+                                ? '<span class="material-symbols-rounded trending-down">trending_down</span>'
+                                : '<span class="material-symbols-rounded stable">stable</span>');
 
-                    // Determine waterflow trend
-                    $previousheight = $i > 0 ? $rows[$i - 1]['height'] : $defaultheight;
-                    $nextheight = $rows[$i + 1]['height'] ?? $defaultheight;
-                    $flow = ($height > $nextheight)
-                        ? '<span class="material-symbols-rounded trending-up">trending_up</span>'
-                        : (($height < $nextheight)
-                            ? '<span class="material-symbols-rounded trending-down">trending_down</span>'
-                            : '<span class="material-symbols-rounded stable">stable</span>');
+                        // Map alert levels
+                        $alertMapping = [
+                            "NORMAL LEVEL" => "NORMAL",
+                            "LOW LEVEL" => "LOW",
+                            "MEDIUM LEVEL" => "MODERATE",
+                            "CRITICAL LEVEL" => "CRITICAL"
+                        ];
+                        $mappedAlertLevel = $alertMapping[$water_level] ?? $water_level;
 
-                    // Map alert levels
-                    $alertMapping = [
-                        "NORMAL LEVEL" => "NORMAL",
-                        "LOW LEVEL" => "LOW",
-                        "MEDIUM LEVEL" => "MODERATE",
-                        "CRITICAL LEVEL" => "CRITICAL"
-                    ];
-                    $mappedAlertLevel = $alertMapping[$water_level] ?? $water_level;
-
-                    // Render table row
-                    echo "<tr>
-                            <td>{$id}</td>
-                            <td>{$date}</td>
-                            <td>{$time}</td>
-                            <td>{$status}</td>
-                            <td>{$height} m</td>
-                            <td>{$height_rate} m/min</td>
-                            <td>{$flow}</td>
-                            <td>{$mappedAlertLevel}</td>
-                            <td>
-                                <button type=\"button\" class=\"btn btn-primary review-alert\" 
-                                    style=\"background-color: #59C447; border: none;\" 
-                                    data-bs-toggle=\"modal\" 
-                                    data-bs-target=\"#floodAlertModal\" 
-                                    data-id=\"{$id}\">
-                                    REVIEW ALERT
-                                </button>
-                            </td>
-                          </tr>";
+                        // Render table row
+                        echo "<tr>
+                                <td>{$id}</td>
+                                <td>{$date}</td>
+                                <td>{$time}</td>
+                                <td>{$status}</td>
+                                <td>{$height} m</td>
+                                <td>{$height_rate} m/min</td>
+                                <td>{$flow}</td>
+                                <td>{$mappedAlertLevel}</td>
+                                <td>
+                                    <button type=\"button\" class=\"btn btn-primary review-alert\" 
+                                        style=\"background-color: #59C447; border: none;\" 
+                                        data-bs-toggle=\"modal\" 
+                                        data-bs-target=\"#floodAlertModal\" 
+                                        data-id=\"{$id}\">
+                                        REVIEW ALERT
+                                    </button>
+                                </td>
+                              </tr>";
+                    }
+                } else {
+                    echo '<tr><td colspan="9" style="text-align: center;">No records found</td></tr>';
                 }
-
-                echo '</tbody>';
-            } else {
-                echo "<p>No data available.</p>";
-            }
-            ?>
+                ?>
+            </tbody>
         </table>
     </div>
 </div>
@@ -117,7 +114,6 @@ $result_verified_alerts = $conn->query($sql_verified_alerts);
     <h2>DAILY RECEIVED FLOOD ALERTS</h2>
     <hr style="color: gray; min-width: 2000px; position: absolute; margin: 10px 0px 0px -300px;">
     <div class="tablecontainer-recent">
-        <!-- Your Table -->
         <table id="recentalertTable" class="display table table-bordered">
             <thead>
                 <tr>
@@ -136,7 +132,6 @@ $result_verified_alerts = $conn->query($sql_verified_alerts);
             <tbody>
                 <?php
                 if ($result_verified_alerts->num_rows > 0) {
-                    // Loop through each record
                     while ($row = $result_verified_alerts->fetch_assoc()) {
                         echo '<tr>
                                 <td>' . htmlspecialchars($row["flood_alert_id"]) . '</td>
@@ -159,7 +154,6 @@ $result_verified_alerts = $conn->query($sql_verified_alerts);
         </table>
     </div>
 </div>
-
 
 
 <!-- STATUS IMAGEEEEEE -->
@@ -342,43 +336,54 @@ $result_verified_alerts = $conn->query($sql_verified_alerts);
 
 <!-- Initialize DataTable -->
 <script>
-    $(document).ready(function() {
-        $('#newalertTable').DataTable();
-    });
-    $('#newalertTable').DataTable({
-    paging: true,  // Enable pagination
-    searching: false, // Enable searching
-    ordering: true, // Enable sorting
-    pageLength: 10, // Set default number of rows per page
-
-});
 $(document).ready(function() {
-        $('#recentalertTable').DataTable();
-        });
-
-        // Function to check if the first alert is addressed
-function checkFirstAlertStatus() {
-    // Assuming the first alert's status is stored in an element with id 'status_1'
-    const firstAlertStatus = document.querySelector('#status_1'); // Adjust the selector as per your table structure
-
-    // Get all the review alert buttons
-    const reviewButtons = document.querySelectorAll('.review-alert');
-
-    // Check if the first alert is addressed (e.g., status not 'NEW')
-    if (firstAlertStatus && firstAlertStatus.innerText.trim() !== 'NEW') {
-        // Enable all review buttons
-        reviewButtons.forEach(button => button.disabled = false);
-    } else {
-        // Disable all review buttons except the first one if the first alert is not addressed
-        reviewButtons.forEach((button, index) => {
-            if (index !== 0) {
-                button.disabled = true;
+    $('#newalertTable').DataTable({
+        paging: true,        
+        searching: false,    
+        ordering: true,       
+        pageLength: 10,      
+        dom: 'tp',          
+        "columnDefs": [     
+            {
+                "targets": 0,  
+                "orderable": false
             }
-        });
-    }
-}
+        ]
+    });
 
+    $('#recentalertTable').DataTable({
+        paging: true,        
+        searching: false,  
+        ordering: true,    
+        pageLength: 5,
+        dom: 'tp'       
+    });
+});
+
+
+    // Function to check if the first alert is addressed
+    function checkFirstAlertStatus() {
+        // Assuming the first alert's status is stored in an element with id 'status_1'
+        const firstAlertStatus = document.querySelector('#status_1'); 
+
+        // Get all the review alert buttons
+        const reviewButtons = document.querySelectorAll('.review-alert');
+
+        // Check if the first alert is addressed (e.g., status not 'NEW')
+        if (firstAlertStatus && firstAlertStatus.innerText.trim() !== 'NEW') {
+            // Enable all review buttons
+            reviewButtons.forEach(button => button.disabled = false);
+        } else {
+            // Disable all review buttons except the first one if the first alert is not addressed
+            reviewButtons.forEach((button, index) => {
+                if (index !== 0) {
+                    button.disabled = true;
+                }
+            });
+        }
+    }
 </script>
+
 
 
 <script>
