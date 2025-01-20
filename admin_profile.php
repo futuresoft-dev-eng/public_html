@@ -663,7 +663,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <p id="acc-title"> My Account </p>
 <hr style="color: #ccc; width: 90%; position: absolute; margin: 90px 0px 0px -20px;">
     <button type="button" id="back-button" onclick="window.location.href='add_user.php';"></button>
-    <button id="view-activity-btn">VIEW ACTIVITY LOG</button>
+    <button type="button" id="view-activity-btn" onclick="window.location.href='activitylog.php';">VIEW ACTIVITY LOG</button>
     </div>
 
     <div class="container">
